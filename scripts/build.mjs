@@ -48,11 +48,15 @@ const version = readFileSync(versionPath, "utf8").trim();
 const { meta, limits, rules, examples } = profile;
 
 // 收件箱：只数待处理条数，不参与校验。有积压是常态，不该拦住构建。
+// 计数必须取「状态」这一列精确比对，不能用整行子串匹配：说明文字里也会出现「待处理」三个字。
 const inboxPath = join(ROOT, "INBOX.md");
 let pendingInbox = 0;
 if (existsSync(inboxPath)) {
   for (const line of readFileSync(inboxPath, "utf8").split("\n")) {
-    if (/^\|\s*\d{4}-\d{2}-\d{2}\s*\|/.test(line) && line.includes("待处理")) pendingInbox++;
+    if (!/^\|\s*\d{4}-\d{2}-\d{2}\s*\|/.test(line)) continue;
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    const status = cells[cells.length - 1] ?? "";
+    if (status === "待处理") pendingInbox++;
   }
 }
 
@@ -308,7 +312,7 @@ for (const [rel, content] of outputs) {
   }
 }
 
-if (pendingInbox > 0) warn(`INBOX.md 有 ${pendingInbox} 条待入档偏好，下次升版时处理`);
+if (pendingInbox > 0) warn(`INBOX.md 有 ${pendingInbox} 条待入档偏好，现在处理：逐行走到「已入档」或「已否决」，三个出口见 INBOX.md`);
 
 for (const w of warnings) console.warn(`提醒：${w}`);
 
