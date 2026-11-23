@@ -1,10 +1,10 @@
-<!-- GENERATED from profile.json v0.1.0 sha:47f6c518 — DO NOT EDIT -->
+<!-- GENERATED from profile.json v0.1.1 sha:1f933858 — DO NOT EDIT -->
 
 <!-- Gemini CLI 默认读取 GEMINI.md。本文件与 AGENTS.md 同源同正文。 -->
 
 # 个人档案 · Agent 入口
 
-版本 v0.1.0 ｜ 语言 zh-CN ｜ 生效规则 28 条（block 19 / ask 6 / warn 3）
+版本 v0.1.1 ｜ 语言 zh-CN ｜ 生效规则 28 条（block 19 / ask 6 / warn 3）
 本文件由 `profile.json` 生成。要改规则，改 JSON 后运行 `node scripts/build.mjs`，不要直接改本文件。
 
 ## 怎么用这份档案

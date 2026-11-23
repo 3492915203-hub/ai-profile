@@ -1,4 +1,4 @@
-<!-- GENERATED from profile.json v0.1.0 sha:47f6c518 — DO NOT EDIT -->
+<!-- GENERATED from profile.json v0.1.1 sha:1f933858 — DO NOT EDIT -->
 
 # CLAUDE.md
 

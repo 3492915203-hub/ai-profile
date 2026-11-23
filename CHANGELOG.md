@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-23
+
+### Fixed
+
+- `docs/integration.md` 的取文件通道按实测重写。原先把 `raw.githubusercontent.com` 写成主要接法，本机实测该域名与 `github.com/.../raw/...` 均不可用（返回 000，16 毫秒即失败），现改为 codeload 源码包与 GitHub API contents 两条可用路径，并附三条通道的实测时延与体积。
+- 补打 `v0.1.0` 与 `v0.1.1` tag，使文档里「用 tag 而非 main」的建议有实际指向。
+
+### Changed
+
+- 文档中的版本引用同步到 `v0.1.1`。规则集合未变，因此本版不含 `Behavior change`。
+
 ## [0.1.0] - 2026-11-23
 
 ### Added

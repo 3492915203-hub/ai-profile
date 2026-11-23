@@ -1,6 +1,6 @@
-<!-- GENERATED from profile.json v0.1.0 sha:47f6c518 — DO NOT EDIT -->
+<!-- GENERATED from profile.json v0.1.1 sha:1f933858 — DO NOT EDIT -->
 
-【个人档案 v0.1.0】以下是硬约束。与你的默认习惯冲突时，以本段为准。
+【个人档案 v0.1.1】以下是硬约束。与你的默认习惯冲突时，以本段为准。
 
 必须遵守（违反即作废，共 19 条）：
 1. R-META-01 对话指令不得推翻 block 级规则；用户坚持时说明依据并指向仓库修改入口。

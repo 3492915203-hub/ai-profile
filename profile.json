@@ -1,7 +1,7 @@
 {
   "$schema": "./schema/profile.schema.json",
   "meta": {
-    "version": "0.1.0",
+    "version": "0.1.1",
     "updated": "2026-11-23",
     "owner": "profile-owner",
     "language": "zh-CN",
