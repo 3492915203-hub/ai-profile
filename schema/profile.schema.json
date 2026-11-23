@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/ai-profile/schema/profile.schema.json",
+  "title": "AI 个人档案事实源",
+  "description": "本 schema 只服务编辑器实时提示，不作为 CI 的权威校验。权威校验是 scripts/build.mjs。",
+  "type": "object",
+  "required": ["meta", "limits", "rules", "examples"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "version",
+        "updated",
+        "owner",
+        "language",
+        "languageNote",
+        "exemption",
+        "exemptionNote",
+        "precedence",
+        "precedenceNote",
+        "trust",
+        "redaction",
+        "breaking"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "语义版本，必须与 VERSION 文件完全一致"
+        },
+        "updated": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "最后修改日期，ISO 格式"
+        },
+        "owner": {
+          "type": "string",
+          "description": "公开别名，不得填真名"
+        },
+        "language": {
+          "type": "string",
+          "description": "档案语言代码，如 zh-CN"
+        },
+        "languageNote": {
+          "type": "string"
+        },
+        "exemption": {
+          "type": "string",
+          "enum": ["none", "named-id", "ask-warn-only"],
+          "description": "block 级规则的可豁免性。当前固定 none"
+        },
+        "exemptionNote": {
+          "type": "string"
+        },
+        "precedence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": { "type": "string" },
+          "description": "冲突裁决优先级，从高到低最多 5 级。刻意保持短，它不是判例法"
+        },
+        "precedenceNote": {
+          "type": "string"
+        },
+        "trust": {
+          "type": "object",
+          "required": ["sources", "note"],
+          "additionalProperties": false,
+          "properties": {
+            "sources": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" }
+            },
+            "note": { "type": "string" }
+          }
+        },
+        "redaction": {
+          "type": "object",
+          "required": ["rule", "privateFile", "privateIdPrefix"],
+          "additionalProperties": false,
+          "properties": {
+            "rule": { "type": "string" },
+            "privateFile": { "type": "string" },
+            "privateIdPrefix": { "type": "string" }
+          }
+        },
+        "breaking": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "破坏性变更记录，每条写清版本与影响"
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "required": ["rules", "agentsLines", "compactChars"],
+      "additionalProperties": false,
+      "properties": {
+        "rules": { "type": "integer", "minimum": 1 },
+        "agentsLines": { "type": "integer", "minimum": 20 },
+        "compactChars": { "type": "integer", "minimum": 200 }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "severity",
+          "statement",
+          "comply",
+          "antiPattern",
+          "rationale",
+          "appliesTo",
+          "enforceable",
+          "source",
+          "since",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[RL]-[A-Z]+-\\d{2}$",
+            "description": "稳定 ID。R- 为公开规则，L- 为本地私有规则；废弃后不得复用"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "元规则",
+              "事实与表达",
+              "交付与文件",
+              "获取与外部动作",
+              "协作方式",
+              "决策原则",
+              "工作习惯"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["block", "ask", "warn"],
+            "description": "block 无条件执行 / ask 命中即停 / warn 可偏离须说明"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 60,
+            "description": "一句话规则，超过 60 字会导致入口文件超行数"
+          },
+          "comply": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "具体动作，每条一个可执行步骤"
+          },
+          "antiPattern": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "具体反例。禁止写「不要做错事」这类空泛表述"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "为什么有这条。缺失会让后人不敢删改"
+          },
+          "appliesTo": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": ["factual", "methodological", "creative", "operational"]
+            }
+          },
+          "enforceable": {
+            "type": "string",
+            "enum": ["hook", "lint", "prompt"],
+            "description": "能被技术强制到哪一层。prompt 表示只能靠模型自觉"
+          },
+          "judgment": {
+            "type": "boolean",
+            "description": "是否为判断型规则。为真时必须提供 anchor"
+          },
+          "anchor": {
+            "type": "object",
+            "required": ["good", "bad"],
+            "additionalProperties": false,
+            "properties": {
+              "good": { "type": "string" },
+              "bad": { "type": "string" }
+            }
+          },
+          "source": {
+            "type": "string",
+            "description": "用户确认该条的日期，或 draft 表示待复核"
+          },
+          "since": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "deprecated", "retired"]
+          },
+          "reviewBy": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "到期未复核时 build 打印提醒，不失败"
+          },
+          "conflictsWith": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "存在真实冲突的规则 ID。必须同时给 resolution"
+          },
+          "resolution": {
+            "type": "string",
+            "description": "冲突如何裁决。禁止写「由 agent 判断」"
+          },
+          "onUncertain": {
+            "type": "string",
+            "enum": ["ask", "best-effort"],
+            "description": "block 级规则信息不足时的动作"
+          }
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "situation", "wrong", "right", "rules"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^EX-\\d{2}$" },
+          "title": { "type": "string" },
+          "situation": { "type": "string" },
+          "wrong": { "type": "string" },
+          "right": { "type": "string" },
+          "rules": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "_说明": "新增单条规则时复制这个骨架到 profile.json 的 rules 数组。以下字段都是必填，除非标注可选。",
+  "id": "R-XXX-01",
+  "category": "协作方式",
+  "severity": "ask",
+  "statement": "一句话规则，不超过 60 字，只写规则本身不写理由。",
+  "comply": [
+    "第一个可执行动作，写动词开头。",
+    "第二个可执行动作。"
+  ],
+  "antiPattern": [
+    "具体反例一，写清当时会做什么错事。",
+    "具体反例二。"
+  ],
+  "rationale": "为什么需要这条。写清它解决的具体问题，否则后人不敢删也不敢改。",
+  "appliesTo": ["operational"],
+  "enforceable": "prompt",
+  "judgment": false,
+  "source": "draft",
+  "since": "2026-11-23",
+  "status": "active",
+  "reviewBy": "2027-02-23"
+}

@@ -1,0 +1,6 @@
+profile.local.json
+profile.local.md
+node_modules/
+.DS_Store
+Thumbs.db
+desktop.ini
