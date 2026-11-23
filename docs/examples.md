@@ -1,4 +1,4 @@
-<!-- GENERATED from profile.json v0.1.1 sha:1f933858 — DO NOT EDIT -->
+<!-- GENERATED from profile.json v0.2.0 sha:98def352 — DO NOT EDIT -->
 
 # 典型示例
 

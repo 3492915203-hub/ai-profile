@@ -47,6 +47,15 @@ const sha = createHash("sha256").update(raw).digest("hex").slice(0, 8);
 const version = readFileSync(versionPath, "utf8").trim();
 const { meta, limits, rules, examples } = profile;
 
+// 收件箱：只数待处理条数，不参与校验。有积压是常态，不该拦住构建。
+const inboxPath = join(ROOT, "INBOX.md");
+let pendingInbox = 0;
+if (existsSync(inboxPath)) {
+  for (const line of readFileSync(inboxPath, "utf8").split("\n")) {
+    if (/^\|\s*\d{4}-\d{2}-\d{2}\s*\|/.test(line) && line.includes("待处理")) pendingInbox++;
+  }
+}
+
 // ---------- 校验 ----------
 if (meta.version !== version) fail(`meta.version (${meta.version}) 与 VERSION (${version}) 不一致`);
 if (!/^\d+\.\d+\.\d+$/.test(meta.version)) fail(`meta.version 不是语义版本：${meta.version}`);
@@ -195,6 +204,7 @@ ${warn_.map((r) => `| \`${r.id}\` | ${esc(r.statement)} |`).join("\n")}
 | 怎么把档案接进某个 agent | \`docs/integration.md\` |
 | 哪条能技术强制、哪条只能靠自觉 | \`docs/enforcement.md\` |
 | 某类任务该加载哪几条 | \`docs/task-profiles.md\` |
+| 用户新提出的偏好怎么入档 | \`INBOX.md\`、\`docs/maintenance.md\` |
 | 每条规则的完整说明与反例 | \`docs/examples.md\`、\`profile.json\` |
 | 字段怎么填、填错会怎样 | \`docs/field-reference.md\` |
 | 改完怎么验证 | \`docs/compliance-checklist.md\` |
@@ -297,6 +307,8 @@ for (const [rel, content] of outputs) {
     writeFileSync(p, content, "utf8");
   }
 }
+
+if (pendingInbox > 0) warn(`INBOX.md 有 ${pendingInbox} 条待入档偏好，下次升版时处理`);
 
 for (const w of warnings) console.warn(`提醒：${w}`);
 

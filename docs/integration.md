@@ -6,18 +6,34 @@
 
 ## 零、先解决「取文件」这一步
 
-本机实测三种取文件通道（2026-11-23）：
+本机在 2026-11-23 相隔数分钟做了两轮实测，两轮结论互相矛盾——这本身就是最该记住的一条信息：
 
-| 通道 | 命令 | 实测结果 |
+| 通道 | 第一轮 | 第二轮 |
 | --- | --- | --- |
-| codeload 源码包 | `curl -L -o p.tar.gz https://codeload.github.com/<用户名>/<仓库>/tar.gz/refs/tags/v0.1.1` | **200，40 KB，0.9 秒，可用** |
-| GitHub API | `curl -s https://api.github.com/repos/<用户名>/<仓库>/contents/VERSION?ref=v0.1.1` | **可用**，返回 JSON，内容为 base64 |
-| raw 域名 | `curl -sL https://raw.githubusercontent.com/<用户名>/<仓库>/main/AGENTS.md` | **不通**，返回 000，16 毫秒即失败 |
-| 网页 Raw 按钮 | 浏览器打开文件页后点 `Raw` | 未测，取决于浏览器的网络环境 |
+| `curl` 经代理取 `github.com` | 000，10.1 秒超时 | 200，1.8 秒 |
+| `curl` 直连 `github.com` | 200，2.6 秒，248 KB | 200，1.5 秒 |
+| `curl` 直连 `api.github.com` | 200，0.4 秒 | — |
+| `curl` 直连 `codeload.github.com` | 200，1.0 秒，41 KB | — |
+| `curl` 取 `raw.githubusercontent.com` | 000，0.01 秒（DNS 层面即失败） | — |
+| `git ls-remote` 经代理 | 成功 | 502，CONNECT tunnel failed |
+| `git ls-remote` 直连 | 失败，21 秒连不上 | 成功 |
 
-**结论：脚本里不要依赖 raw 域名。** 拉整仓用 codeload，取单个文件用 API，或直接在浏览器里下载。
+三条结论：
 
-`github.com/.../raw/...` 这种写法会 302 跳转到 raw 域名，跟着跳也拿不到内容，实测同样失败。
+1. **raw 域名在本机始终不通。** 两轮都没过，是唯一稳定的结论。脚本里不要依赖它；`github.com/.../raw/...` 会 302 跳到该域名，跟着跳同样失败。
+2. **代理与直连哪条通，会随时刻翻转。** 而且 git 协议与 curl 走的不是同一条路，同一时刻可能一个通、一个不通。
+3. **所以单次失败不能下结论。** 换另一条通道重试一次，把状态码与耗时一并报出来，再判断卡在 DNS、代理还是凭证（`R-NET-02`）。
+
+可用的取文件方式：
+
+| 用途 | 命令 |
+| --- | --- |
+| 拉整仓 | `curl -L -o p.tar.gz https://codeload.github.com/<用户名>/<仓库>/tar.gz/refs/tags/v0.2.0` |
+| 取单个文件 | `curl -s "https://api.github.com/repos/<用户名>/<仓库>/contents/VERSION?ref=v0.2.0"`（返回 JSON，内容为 base64） |
+| 手动下载 | 浏览器打开文件页点 `Raw`，能否成功取决于浏览器所处的网络 |
+
+tag 会随版本变化，把上面路径里的版本号换成你要的 tag 即可。
+
 
 ## 一、Claude Code
 
@@ -29,7 +45,7 @@ Claude Code 原生读 `CLAUDE.md`，**不读** `AGENTS.md`。官方文档给的�
 
 ```bash
 # 取整仓（raw 域名不通，用 codeload）
-curl -L -o profile.tar.gz https://codeload.github.com/<用户名>/ai-profile/tar.gz/refs/tags/v0.1.1
+curl -L -o profile.tar.gz https://codeload.github.com/<用户名>/ai-profile/tar.gz/refs/tags/v0.2.0
 tar -xzf profile.tar.gz
 # 再把解压目录里的 CLAUDE.md 与 AGENTS.md 复制到项目根
 ```
@@ -48,7 +64,7 @@ tar -xzf profile.tar.gz
 
 **[未验证]** 导入是否接受绝对路径、是否接受 `~` 展开。官方文档只说「相对路径从持有导入语句的文件所在目录解析」，没有明说绝对路径。若这一行不生效，退化为两个办法：把 `AGENTS.md` 的正文整段复制进 `~/.claude/CLAUDE.md`，或在本机建符号链接（Windows 需管理员权限或开发者模式）。
 
-**判断有没有生效**：新开一个会话，问「你读到的档案版本是多少」。若答不出 `v0.1.1`，就是没加载。
+**判断有没有生效**：新开一个会话，问「你读到的档案版本是多少」。若答不出 `v0.2.0`，就是没加载。
 
 ## 二、Codex / Cursor / Copilot / Zed / Warp / Amp
 
@@ -60,9 +76,9 @@ tar -xzf profile.tar.gz
 
 1. **档案只放在独立目录或用户级位置**，不塞进别人的项目里。
 2. 项目自己的 `AGENTS.md` 里加一句：`本项目的约定与个人档案冲突时，个人档案优先。` 并写明个人档案的位置。
-3. 临时使用：直接给文件页地址 `https://github.com/<用户名>/ai-profile/blob/v0.1.1/AGENTS.md`，让它在浏览器侧读取。**不要给 raw 地址**，本机实测不通。
+3. 临时使用：直接给文件页地址 `https://github.com/<用户名>/ai-profile/blob/v0.2.0/AGENTS.md`，让它在浏览器侧读取。**不要给 raw 地址**，本机实测不通。
 
-**用 tag 而不是 `main`**：tag 指向确定版本，`main` 会随改动而变，行为不可复现。本仓库已有 `v0.1.1` tag。
+**用 tag 而不是 `main`**：tag 指向确定版本，`main` 会随改动而变，行为不可复现。本仓库已有 `v0.2.0` tag。
 
 ## 三、Gemini CLI
 
